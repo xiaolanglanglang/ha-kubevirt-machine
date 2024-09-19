@@ -1,0 +1,11 @@
+{
+  "domain": "ha_kubevirt_machine",
+  "name": "Kubevirt Machine",
+  "config_flow": true,
+  "documentation": "https://github.com/xiaolanglanglang/ha-kubevirt-machine",
+  "requirements": ["requests>=2.25.0"],
+  "dependencies": [],
+  "codeowners": ["@xiaolanglanglang"],
+  "iot_class": "local_polling",
+  "version": "0.1.0"
+}
