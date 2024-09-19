@@ -40,15 +40,15 @@ class KubevirtVMSwitch(CoordinatorEntity, SwitchEntity):
 
     async def async_turn_on(self, **kwargs) -> None:
         """启动虚拟机。"""
-        self.coordinator.data[self._vm_name]['state'] = STATE_ON
         await self.hass.async_add_executor_job(self.coordinator.api.start_vm, self._vm_name)
         await self.coordinator.async_request_refresh()
+        self.coordinator.data[self._vm_name]['state'] = STATE_ON
 
     async def async_turn_off(self, **kwargs) -> None:
         """关闭虚拟机。"""
-        self.coordinator.data[self._vm_name]['state'] = STATE_OFF
         await self.hass.async_add_executor_job(self.coordinator.api.stop_vm, self._vm_name)
         await self.coordinator.async_request_refresh()
+        self.coordinator.data[self._vm_name]['state'] = STATE_OFF
 
     @property
     def extra_state_attributes(self):
