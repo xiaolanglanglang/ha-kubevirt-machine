@@ -39,9 +39,9 @@ class KubevirtAPI:
             for vm in vms['items']:
                 name = vm['metadata']['name']
                 status = vm['status'].get('printableStatus', STATE_UNKNOWN)
-                if status == 'Running':
+                if status in ['Running', 'Starting']:
                     state = STATE_ON
-                elif status in ['Stopped', 'Succeeded']:
+                elif status in ['Stopped', 'Succeeded', 'Stopping']:
                     state = STATE_OFF
                 else:
                     state = STATE_UNKNOWN

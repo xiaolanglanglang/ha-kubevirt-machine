@@ -4,7 +4,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, STATE_ON
+from .const import DOMAIN, STATE_ON, STATE_OFF
 from .coordinator import KubevirtDataUpdateCoordinator
 
 
@@ -40,11 +40,13 @@ class KubevirtVMSwitch(CoordinatorEntity, SwitchEntity):
 
     async def async_turn_on(self, **kwargs) -> None:
         """启动虚拟机。"""
+        self.coordinator.data[self._vm_name]['state'] = STATE_ON
         await self.hass.async_add_executor_job(self.coordinator.api.start_vm, self._vm_name)
         await self.coordinator.async_request_refresh()
 
     async def async_turn_off(self, **kwargs) -> None:
         """关闭虚拟机。"""
+        self.coordinator.data[self._vm_name]['state'] = STATE_OFF
         await self.hass.async_add_executor_job(self.coordinator.api.stop_vm, self._vm_name)
         await self.coordinator.async_request_refresh()
 
@@ -54,4 +56,4 @@ class KubevirtVMSwitch(CoordinatorEntity, SwitchEntity):
         if self._vm_name not in self.coordinator.data:
             return {}
         vm_data = self.coordinator.data[self._vm_name]
-        return {"status": vm_data['status'], "node": vm_data['node'], "age": vm_data['age'], "ip": vm_data['ip']}
+        return {"status": vm_data['status']}
