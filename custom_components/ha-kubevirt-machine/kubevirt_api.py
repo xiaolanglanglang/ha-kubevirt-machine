@@ -1,14 +1,12 @@
 import logging
 import requests
 from requests.exceptions import RequestException
-import urllib3
+import tempfile
+import os
 
 from .const import STATE_ON, STATE_OFF, STATE_UNKNOWN
 
 _LOGGER = logging.getLogger(__name__)
-
-# 禁用不安全的HTTPS请求警告
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 class KubevirtAPI:
@@ -24,6 +22,18 @@ class KubevirtAPI:
             "Authorization": f"Bearer {self.api_token}",
             "Content-Type": "application/json"
         }
+        self.ca_cert_file = self._create_temp_ca_cert_file()
+
+    def _create_temp_ca_cert_file(self):
+        """创建临时CA证书文件。"""
+        with tempfile.NamedTemporaryFile(mode='w', delete=False) as temp_file:
+            # 添加换行符
+            cert_content = self.api_ca_cert.replace(
+                "-----BEGIN CERTIFICATE-----", "-----BEGIN CERTIFICATE-----\n")
+            cert_content = cert_content.replace(
+                "-----END CERTIFICATE-----", "\n-----END CERTIFICATE-----")
+            temp_file.write(cert_content)
+            return temp_file.name
 
     def get_vms(self):
         """获取虚拟机列表及其状态。"""
@@ -31,7 +41,7 @@ class KubevirtAPI:
             url = f"{
                 self.api_url}/apis/kubevirt.io/v1/namespaces/{self.namespace}/virtualmachines"
             response = requests.get(
-                url, headers=self.headers, verify=False, timeout=10)
+                url, headers=self.headers, verify=self.ca_cert_file, timeout=10)
             response.raise_for_status()
             vms = response.json()
 
@@ -62,7 +72,7 @@ class KubevirtAPI:
             url = f"{self.api_url}/apis/subresources.kubevirt.io/v1/namespaces/{
                 self.namespace}/virtualmachines/{vm_name}/start"
             response = requests.put(
-                url, headers=self.headers, verify=False, timeout=10)
+                url, headers=self.headers, verify=self.ca_cert_file, timeout=10)
             response.raise_for_status()
             return True
         except RequestException as e:
@@ -75,7 +85,7 @@ class KubevirtAPI:
             url = f"{self.api_url}/apis/subresources.kubevirt.io/v1/namespaces/{
                 self.namespace}/virtualmachines/{vm_name}/stop"
             response = requests.put(
-                url, headers=self.headers, verify=False, timeout=10)
+                url, headers=self.headers, verify=self.ca_cert_file, timeout=10)
             response.raise_for_status()
             return True
         except RequestException as e:
@@ -87,3 +97,8 @@ class KubevirtAPI:
         if self.stop_vm(vm_name):
             return self.start_vm(vm_name)
         return False
+
+    def __del__(self):
+        """清理临时CA证书文件。"""
+        if hasattr(self, 'ca_cert_file') and os.path.exists(self.ca_cert_file):
+            os.remove(self.ca_cert_file)
