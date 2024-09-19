@@ -25,7 +25,7 @@ class HAKubevirtMachineConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN
             elif not user_input.get(const.CONF_NAMESPACE):
                 errors["base"] = "namespace_required"
             if not errors:
-                return self.async_create_entry(title="Kubevirt 虚拟机管理", data=user_input)
+                return self.async_create_entry(title="Kubevirt Machine", data=user_input)
 
         return self.async_show_form(
             step_id="user",
