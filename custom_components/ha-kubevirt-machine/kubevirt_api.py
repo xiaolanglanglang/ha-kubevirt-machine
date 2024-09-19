@@ -1,11 +1,14 @@
 import logging
 import requests
 from requests.exceptions import RequestException
+import urllib3
 
 from .const import STATE_ON, STATE_OFF, STATE_UNKNOWN
 
 _LOGGER = logging.getLogger(__name__)
 
+# 禁用不安全的HTTPS请求警告
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 class KubevirtAPI:
     """用于与 Kubevirt API 交互的类。"""
@@ -24,10 +27,8 @@ class KubevirtAPI:
     def get_vms(self):
         """获取虚拟机列表及其状态。"""
         try:
-            url = f"{
-                self.api_url}/apis/kubevirt.io/v1/namespaces/{self.namespace}/virtualmachines"
-            response = requests.get(
-                url, headers=self.headers, verify=False, timeout=10)
+            url = f"{self.api_url}/apis/kubevirt.io/v1/namespaces/{self.namespace}/virtualmachines"
+            response = requests.get(url, headers=self.headers, verify=False, timeout=10)
             response.raise_for_status()
             vms = response.json()
 
@@ -68,11 +69,8 @@ class KubevirtAPI:
     def start_vm(self, vm_name):
         """启动虚拟机。"""
         try:
-            url = f"{self.api_url}/apis/kubevirt.io/v1/namespaces/{
-                self.namespace}/virtualmachines/{vm_name}"
-            body = {"spec": {"running": True}}
-            response = requests.patch(
-                url, headers=self.headers, json=body, verify=False, timeout=10)
+            url = f"{self.api_url}/apis/subresources.kubevirt.io/v1/namespaces/{self.namespace}/virtualmachines/{vm_name}/start"
+            response = requests.put(url, headers=self.headers, verify=False, timeout=10)
             response.raise_for_status()
             return True
         except RequestException as e:
@@ -82,11 +80,8 @@ class KubevirtAPI:
     def stop_vm(self, vm_name):
         """停止虚拟机。"""
         try:
-            url = f"{self.api_url}/apis/kubevirt.io/v1/namespaces/{
-                self.namespace}/virtualmachines/{vm_name}"
-            body = {"spec": {"running": False}}
-            response = requests.patch(
-                url, headers=self.headers, json=body, verify=False, timeout=10)
+            url = f"{self.api_url}/apis/subresources.kubevirt.io/v1/namespaces/{self.namespace}/virtualmachines/{vm_name}/stop"
+            response = requests.put(url, headers=self.headers, verify=False, timeout=10)
             response.raise_for_status()
             return True
         except RequestException as e:
