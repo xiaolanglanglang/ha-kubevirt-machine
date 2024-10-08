@@ -14,7 +14,7 @@ class KubevirtAPI:
 
     def __init__(self, api_url, api_token, api_ca_cert, namespace):
         """初始化 KubevirtAPI。"""
-        self.api_url = api_url
+        self.api_url = api_url if api_url.endswith('/') else api_url + '/'
         self.api_token = api_token
         self.api_ca_cert = api_ca_cert
         self.namespace = namespace
@@ -39,7 +39,7 @@ class KubevirtAPI:
         """获取虚拟机列表及其状态。"""
         try:
             url = f"{
-                self.api_url}/apis/kubevirt.io/v1/namespaces/{self.namespace}/virtualmachines"
+                self.api_url}apis/kubevirt.io/v1/namespaces/{self.namespace}/virtualmachines"
             response = requests.get(
                 url, headers=self.headers, verify=self.ca_cert_file, timeout=10)
             response.raise_for_status()
@@ -69,7 +69,7 @@ class KubevirtAPI:
     def start_vm(self, vm_name):
         """启动虚拟机。"""
         try:
-            url = f"{self.api_url}/apis/subresources.kubevirt.io/v1/namespaces/{
+            url = f"{self.api_url}apis/subresources.kubevirt.io/v1/namespaces/{
                 self.namespace}/virtualmachines/{vm_name}/start"
             response = requests.put(
                 url, headers=self.headers, verify=self.ca_cert_file, timeout=10)
@@ -82,7 +82,7 @@ class KubevirtAPI:
     def stop_vm(self, vm_name):
         """停止虚拟机。"""
         try:
-            url = f"{self.api_url}/apis/subresources.kubevirt.io/v1/namespaces/{
+            url = f"{self.api_url}apis/subresources.kubevirt.io/v1/namespaces/{
                 self.namespace}/virtualmachines/{vm_name}/stop"
             response = requests.put(
                 url, headers=self.headers, verify=self.ca_cert_file, timeout=10)
