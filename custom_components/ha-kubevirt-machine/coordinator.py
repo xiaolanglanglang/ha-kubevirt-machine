@@ -2,8 +2,8 @@ import logging
 from datetime import timedelta
 
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
-from homeassistant.exceptions import ConfigEntryAuthFailed
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+
 
 from .const import DOMAIN, CONF_API_URL, CONF_API_TOKEN, CONF_API_CA_CERT, CONF_NAMESPACE
 from .kubevirt_api import KubevirtAPI
@@ -34,4 +34,4 @@ class KubevirtDataUpdateCoordinator(DataUpdateCoordinator):
         try:
             return await self.hass.async_add_executor_job(self.api.get_vms)
         except Exception as err:
-            raise ConfigEntryAuthFailed("无法连接到 Kubevirt API") from err
+            raise UpdateFailed(f"无法连接到 Kubevirt API: {err}") from err
